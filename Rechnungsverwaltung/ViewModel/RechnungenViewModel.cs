@@ -216,7 +216,7 @@ namespace Rechnungsverwaltung.ViewModel
             List = InvoiceList.ConvertFromList(lists);
 
             MQTTClient Client = new MQTTClient();
-            Client.Init();
+            Client.Init("Client1","localhost");
 
             AddCommand = new RelayCommand(e =>
             {
@@ -303,14 +303,16 @@ namespace Rechnungsverwaltung.ViewModel
 
             );
 
-            SendInvoiceCommand = new RelayCommand(e =>
+            SendInvoiceCommand = new RelayCommand(async e =>
             {
-                Client.SendInvoice(CurrentInvoice);
+                String isSuccessful = await Client.SendInvoice(CurrentInvoice);
+                if(isSuccessful!="successful") System.Windows.Forms.MessageBox.Show("Sending Message Failed: Following Exception:"+isSuccessful);
             });
 
-            SendInvoicePositionCommand = new RelayCommand(e =>
+            SendInvoicePositionCommand = new RelayCommand(async e =>
             {
-                Client.SendInvoicePosition(CurrentPosition);
+                String isSuccessful = await Client.SendInvoicePosition(CurrentPosition);
+                if(isSuccessful!="successful") System.Windows.Forms.MessageBox.Show("Sending Message Failed: Following Exception:"+isSuccessful);
             }
 
             );

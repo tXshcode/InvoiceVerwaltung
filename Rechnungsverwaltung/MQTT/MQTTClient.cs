@@ -16,61 +16,68 @@ namespace Rechnungsverwaltung.MQTT
         private IMqttFactory factory = new MqttFactory();
         private IMqttClient mqttClient;
 
-        public async void Init()
+        public async void Init(string Client, string TcpServer)
         {
             mqttClient = factory.CreateMqttClient();
             // Create TCP based options using the builder.
             var options = new MqttClientOptionsBuilder()
-                .WithClientId("Client1")
-                .WithTcpServer("localhost")
-                //.WithCredentials("bud", "%spencer%")
-                //.WithTls()
+                .WithClientId(Client)
+                .WithTcpServer(TcpServer)
                 .WithCleanSession()
                 .Build();
+            
+                await mqttClient.ConnectAsync(options, CancellationToken.None); // Since 3.0.5 with CancellationToken
+            
+            
 
+        }
+
+        public async Task<String> SendInvoicePosition(PositionEntity Position)
+        {
+            //if (mqttClient.IsConnected==false) return "Connection failed";
+            
+            var Message = new MqttApplicationMessageBuilder()
+                .WithTopic("invoice/position")
+                .WithPayload($"ID: {Position.Id}; ItemNr: {Position.ItemNr} Price: {Position.Price} Qty: {Position.Qty}")
+                .Build();
+            try
+            {
+                await mqttClient.PublishAsync(Message, CancellationToken.None);
+            }
+            catch(Exception e)
+            {
+                return e.ToString();
+            }
+            return "successful";
            
-            await mqttClient.ConnectAsync(options, CancellationToken.None); // Since 3.0.5 with CancellationToken
-
         }
 
-        public async Task<bool> SendInvoicePosition(PositionEntity Position)
+        public async Task<String> SendInvoice(Invoice Invoice)
         {
-            if (mqttClient.IsConnected)
+            //if (mqttClient.IsConnected==false) return "Connection failed";
+            
+            var Message = new MqttApplicationMessageBuilder()
+                .WithTopic("invoice/rechnung")
+                .WithPayload($"ID: {Invoice.ID} Date: {Invoice.InvoiceDate} Amount: {Invoice.Amount} Name: {Invoice.CustomerName} Adress: {Invoice.CustomerAdress}")
+                .Build();
+
+            try
             {
-                var Message = new MqttApplicationMessageBuilder()
-                    .WithTopic("invoice/position")
-                    .WithPayload($"ID: {Position.Id}; ItemNr: {Position.ItemNr} Price: {Position.Price} Qty: {Position.Qty}")
-                    .WithExactlyOnceQoS()
-                    .WithRetainFlag()
-                    .Build();
-
                 await mqttClient.PublishAsync(Message, CancellationToken.None); // Since 3.0.5 with CancellationToken
-                return true;
             }
-            return false;
-        }
-
-        public async Task<bool> SendInvoice(Invoice Invoice)
-        {
-            if (mqttClient.IsConnected)
+            catch(Exception e)
             {
-                int i = 0;
-                var Message = new MqttApplicationMessageBuilder()
-                    .WithTopic("invoice/rechnung")
-                    .WithPayload($"ID: {Invoice.ID} Date: {Invoice.InvoiceDate} Amount: {Invoice.Amount} Name: {Invoice.CustomerName} Adress: {Invoice.CustomerAdress}")
-                    .WithExactlyOnceQoS()
-                    .WithRetainFlag()
-                    .Build();
 
-                await mqttClient.PublishAsync(Message, CancellationToken.None); // Since 3.0.5 with CancellationToken
-
-                foreach (var Position in Invoice.Position)
-                {
-                    await SendInvoicePosition(Position);
-                }
-                return true;
+                return e.ToString();
             }
-            return false;
+            
+            foreach (var Position in Invoice.Position)
+            {
+                await SendInvoicePosition(Position);
+            }
+            return "successful";
+            
+  
         }
     }
 }
