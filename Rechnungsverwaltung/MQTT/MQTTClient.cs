@@ -73,8 +73,11 @@ namespace Rechnungsverwaltung.MQTT
             
             foreach (var Position in Invoice.Position)
             {
-                await SendInvoicePosition(Position);
+                String isSuccessful = await SendInvoicePosition(Position);
+                if (isSuccessful != "successful") return isSuccessful;
+                
             }
+            
             return "successful";
             
   

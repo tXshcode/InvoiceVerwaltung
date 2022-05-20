@@ -29,6 +29,7 @@ namespace Rechnungsverwaltung.ViewModel
 {
     class RechnungenViewModel : INotifyPropertyChanged
     {
+        #region Declarations
 
         private InvoiceList list;
         private PositionList posList;
@@ -201,7 +202,8 @@ namespace Rechnungsverwaltung.ViewModel
         public Func<double, string> YFormatterBubble { get; set; }
 
 
-
+        #endregion 
+        
         public RechnungenViewModel()
         {
 
@@ -217,6 +219,8 @@ namespace Rechnungsverwaltung.ViewModel
 
             MQTTClient Client = new MQTTClient();
             Client.Init("Client1","localhost");
+
+            #region ICommands
 
             AddCommand = new RelayCommand(e =>
             {
@@ -311,12 +315,13 @@ namespace Rechnungsverwaltung.ViewModel
 
             SendInvoicePositionCommand = new RelayCommand(async e =>
             {
+                
                 String isSuccessful = await Client.SendInvoicePosition(CurrentPosition);
                 if(isSuccessful!="successful") System.Windows.Forms.MessageBox.Show("Sending Message Failed: Following Exception:"+isSuccessful);
             }
 
             );
-
+            #endregion
 
 
         }
@@ -338,7 +343,7 @@ namespace Rechnungsverwaltung.ViewModel
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
+        #region BarCode QrCode
         private BitmapSource CreateBarCode(string toCode)
         {
             BarcodeLib.Barcode b = new BarcodeLib.Barcode();
@@ -371,5 +376,6 @@ namespace Rechnungsverwaltung.ViewModel
                          Int32Rect.Empty,
                          BitmapSizeOptions.FromEmptyOptions());
         }
+        #endregion
     }
 }
