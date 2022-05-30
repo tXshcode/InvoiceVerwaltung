@@ -70,7 +70,9 @@ namespace Rechnungsverwaltung.ViewModel
 
         public ICommand SendInvoicePositionCommand { get; set; }
         public ICommand SendInvoiceCommand { get; set; }
-
+        public ICommand SendInvoiceJsonCommand { get; set; }
+        public ICommand SendInvoicePositionJsonCommand { get; set; }
+        
 
         public int ChosenID { get; set; }
 
@@ -321,6 +323,24 @@ namespace Rechnungsverwaltung.ViewModel
             }
 
             );
+
+            SendInvoicePositionJsonCommand = new RelayCommand(async e =>
+            {
+
+                String isSuccessful = await Client.SendInvoicePositionJson(CurrentPosition);
+                if (isSuccessful != "successful") System.Windows.Forms.MessageBox.Show("Sending Message Failed: Following Exception:" + isSuccessful);
+            }
+
+           ); 
+           SendInvoiceJsonCommand = new RelayCommand(async e =>
+           {
+
+               String isSuccessful = await Client.SendInvoiceJson(CurrentInvoice);
+               if (isSuccessful != "successful") System.Windows.Forms.MessageBox.Show("Sending Message Failed: Following Exception:" + isSuccessful);
+           }
+
+            );
+
             #endregion
 
 

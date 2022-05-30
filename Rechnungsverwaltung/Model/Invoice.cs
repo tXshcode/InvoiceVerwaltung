@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Rechnungsverwaltung.Model
@@ -14,8 +15,7 @@ namespace Rechnungsverwaltung.Model
         public double Amount { get; set; }
         public DateTime InvoiceDate { get; set; }
         public int Vat { get; set; }
-
-        public ICollection<PositionEntity> Position { get; set; } = new List<PositionEntity>();
+        [JsonIgnore]public ICollection<PositionEntity> Position { get; set; } = new List<PositionEntity>();
 
     }
 }

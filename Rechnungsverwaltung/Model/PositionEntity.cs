@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Rechnungsverwaltung.Model
@@ -16,6 +17,7 @@ namespace Rechnungsverwaltung.Model
         public double Price { get; set; }
 
         public int InvoiceId { get; set; }             // FK der Rechung
+        [JsonIgnore]
         public Invoice Invoice { get; set; }     // Referenz auf die Rechnung
     }
 }

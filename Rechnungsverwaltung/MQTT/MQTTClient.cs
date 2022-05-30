@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
+using Newtonsoft.Json;
 using Rechnungsverwaltung.Model;
 
 namespace Rechnungsverwaltung.MQTT
@@ -34,53 +35,100 @@ namespace Rechnungsverwaltung.MQTT
 
         public async Task<String> SendInvoicePosition(PositionEntity Position)
         {
-            //if (mqttClient.IsConnected==false) return "Connection failed";
             
-            var Message = new MqttApplicationMessageBuilder()
-                .WithTopic("invoice/position")
-                .WithPayload($"ID: {Position.Id}; ItemNr: {Position.ItemNr} Price: {Position.Price} Qty: {Position.Qty}")
-                .Build();
-            try
-            {
-                await mqttClient.PublishAsync(Message, CancellationToken.None);
-            }
-            catch(Exception e)
-            {
-                return e.ToString();
-            }
+            var Message = $"ID: {Position.Id}; ItemNr: {Position.ItemNr} Price: {Position.Price} Qty: {Position.Qty}";
+
+            var Status = await SendInvoice(Message, "invoice/position");
+
+            if (Status != "successful") return Status;
+
             return "successful";
            
         }
 
         public async Task<String> SendInvoice(Invoice Invoice)
         {
-            //if (mqttClient.IsConnected==false) return "Connection failed";
-            
-            var Message = new MqttApplicationMessageBuilder()
-                .WithTopic("invoice/rechnung")
-                .WithPayload($"ID: {Invoice.ID} Date: {Invoice.InvoiceDate} Amount: {Invoice.Amount} Name: {Invoice.CustomerName} Adress: {Invoice.CustomerAdress}")
-                .Build();
 
-            try
-            {
-                await mqttClient.PublishAsync(Message, CancellationToken.None); // Since 3.0.5 with CancellationToken
-            }
-            catch(Exception e)
-            {
+            var Message = $"ID: {Invoice.ID} Date: {Invoice.InvoiceDate} Amount: {Invoice.Amount} Name: {Invoice.CustomerName} Adress: {Invoice.CustomerAdress}";
 
-                return e.ToString();
-            }
-            
+
+            var Status = await SendInvoice(Message, "invoice/rechnung");
+
+            if (Status != "successful") return Status;
+
             foreach (var Position in Invoice.Position)
             {
                 String isSuccessful = await SendInvoicePosition(Position);
                 if (isSuccessful != "successful") return isSuccessful;
                 
             }
-            
+
             return "successful";
-            
   
+        }
+
+        public async Task<String> SendInvoiceJson(Invoice Invoice)
+        {
+            //JSON konvertieren
+            string json = JsonConvert.SerializeObject(Invoice, Formatting.Indented,
+            new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            });
+            //via MQTT senden
+            var Status = await SendInvoice(json, "invoice_json/rechnung");
+
+            if (Status != "successful") return Status;
+
+            foreach (var Position in Invoice.Position)
+            {
+                String isSuccessful = await SendInvoicePositionJson(Position);
+                if (isSuccessful != "successful") return isSuccessful;
+
+            }
+
+            return "successful";
+        }
+
+        public async Task<String> SendInvoicePositionJson(PositionEntity Position)
+        {
+            //JSON konvertieren
+            string json = JsonConvert.SerializeObject(Position, Formatting.Indented,
+            new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            });
+            //via MQTT senden
+            var Status = await SendInvoice(json, "invoice_json/position");
+
+            if (Status != "successful") return Status;
+
+            return "successful";
+        }
+
+
+
+        private async Task<String> SendInvoice(string message, string topic)
+        {
+            //isConnected
+            if (mqttClient.IsConnected == false) return "Connection failed";
+
+            var Message = new MqttApplicationMessageBuilder()
+                .WithTopic(topic)
+                .WithPayload(message)
+                .Build();
+
+           
+            try
+            {
+                await mqttClient.PublishAsync(Message, CancellationToken.None); // Since 3.0.5 with CancellationToken
+            }
+            catch (Exception e)
+            {
+
+                return e.ToString();
+            }
+            return "successful";
         }
     }
 }

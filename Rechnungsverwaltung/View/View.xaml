@@ -97,6 +97,7 @@
                         <ContextMenu>
                             <MenuItem Header="Löschen" Command="{Binding Path=DeleteCommand}"></MenuItem>
                             <MenuItem Header="Senden" Command="{Binding Path=SendInvoiceCommand}"></MenuItem>
+                            <MenuItem Header="Senden Json" Command="{Binding Path=SendInvoiceJsonCommand}"></MenuItem>
                         </ContextMenu>
                     </ListView.ContextMenu>
                     <ListView.View>
@@ -116,6 +117,7 @@
                         <ListView.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Senden" Command="{Binding Path=SendInvoicePositionCommand}"></MenuItem>
+                                <MenuItem Header="Senden Json" Command="{Binding Path=SendInvoicePositionJsonCommand}"></MenuItem>
                             </ContextMenu>
                         </ListView.ContextMenu>
                         <ListView.View>
